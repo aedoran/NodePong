@@ -8,6 +8,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="viewport" content="width=device-width;" />
 
+    <script type="text/javascript" src="/api-js/src/Ordrin.js"></script>
+    <script type="text/javascript" src="/api-js/src/Address.js"></script>
+    <script type="text/javascript" src="/api-js/src/DateTime.js"></script>
+    <script type="text/javascript" src="/api-js/src/Money.js"></script>
+
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 
     <!--script type="text/javascript"  src="http://code.jquery.com/jquery-1.5.min.js"></script-->
@@ -18,7 +23,7 @@
     <script type="text/javascript"  src="http://code.jquery.com/mobile/1.0a3/jquery.mobile-1.0a3.min.js"></script>
 
     <!-- TypeKit support -->
-    <script type="text/javascript" src="http://use.typekit.com/fhn8jqe.js"></script>
+    <script type="text/javascript" src="http://use.typekit.com/skv5wfo.js"></script>
     <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
     <link rel="stylesheet" href="nodepong.css" type="text/css" media="screen"></link>
@@ -48,41 +53,72 @@
     </script>
 
   </head>
-
-
-
-
-
-
-
-
 <body>
   <div class="center"><noscript>NodePong is a browser-based JavaScript game - enable scripts and try again!</noscript></div>
 
   <div id="readout"></div>
   <div id="readout2"></div>
   <div id="returned"></div>
-
-
-
   <div class="center">
   <div id="toucharea">
-
-
-
-
-
-
-
     <!-- COURT -->
     <div id="court">
       <img id="xgif" src="img/x.gif" alt="4x3 spacer gif" />
+      <div id="welcome" style="">
+		<span class="title">WELCOME PONGPLAYA</span>
+		<p>are you ready to turn your pong skillz into food?<p>
+	    <input class="formButton" type="button" value="Yes" onclick="titleEnter(); return false;" />
+	  </div>
+	  <div id="instructions" style="visibility:hidden">
+		<span class="title">HOW PONGPLAYAS WORK</span>
+		<p>1. You select the food you want to win, (under $20)</p>
+		<p>2. If you lose you pay for your opponents food, (which will be under $20)</p>
+		<input class="formButton" type="button" value="Ok I get it let's get going" onclick="startForm();return false;">
+	  </div>
+	  <div id="address" style="visibility:hidden">
+		<span id="loginMessage">WHAT YOUR ADDRESS</span>
+		<form id="addressForm" method="post" action="#">
+		<input type="text" id="street" value="street" /><br />
+		<input type="text" id="street2" value="street2" /><br />		
+		<input type="text" id="city" value="city" /><br />
+		<input type="text" id="state" value="state" /><br />
+		<input type="text" id="zipcode" value="zipcode"/><br />
+	    <input type="submit" class="formButton" id="go" value="Go" onclick="enterAddress();return false;" /></form>	
+	  </div>
+	 <div id="restaurants" style="visibility:hidden">
+		<span id="restaurantsMessage">WHAT YOUR RESTAURANT</span>
+		<form id="restaurantsForm" method="post" action="#">
+		</form>
+     </div>
 
-      <div id="login">
-        <div id="hello">NODEPONG</div>
+	 <div id="food" style="visibility:hidden">
+		<span id="foodMessage">WHAT YOUR FOOD</span>
+		<form id="foodForm" method="post" action="#">
+		</form>
+     </div>
+     <div id="billing" style="visibility:hidden">
+		<span id="billingMessage">WHAT YOUR BILLING</span>
+		<form id="bililngForm" method="post" action="#">
+		<input type="text" id="fname" value="fname" /><br />
+		<input type="text" id="lname" value="lname" /><br />	
+		<input type="text" id="street" value="street" /><br />
+		<input type="text" id="street2" value="street2" /><br />		
+		<input type="text" id="city" value="city" /><br />
+		<input type="text" id="state" value="state" /><br />
+		<input type="text" id="zipcode" value="zipcode"/><br />
+		<input type="text" id="cctype" value="cctype"/><br />
+		<input type="text" id="ccnum" value="ccnum"/><br />
+		<input type="text" id="ccexp" value="ccexp"/><br />
+		<input type="text" id="email" value="email" /><br />
+                <input type="text" id="password" value="password" /><br />
+	    <input class="formButton" type="submit" id="go" value="Go" onclick="enterBilling();return false;" /></form>			
+		</form>
+	</div>
+
+      <div id="login" style="visibility:hidden">
         <a href="#" onClick="makeID();return false"><span id="loginMessage">WHAT YOUR PONG NAME</span></a>
         <form id="nameform" method="post" action="#"><input type="text" id="entername" maxlength="6" />
-        <input type="submit" id="go" value="Go" onclick="validateName();return false;" /></form>
+        <input class="formButton" type="submit" id="go" value="Go" onclick="validateName();return false;" /></form>
         <input type="submit" id="cancel" value="spectate" onclick="spectate();return false;" /></form>
       </div>
       <h1 id="alert"></h1>

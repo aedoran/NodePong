@@ -54,11 +54,90 @@ function loginAlert(alertString) {
 // prepare for play
 function play() {
   $('#login').css('display','none');
+  $('#address').css('display','none');
+  $('#billing').css('display','none');
   $('#insertcoin').css('display','none');
   $('#spectate').css('visibility','visible');
 
   // send ready message to server
   socket.send({type:'ready', name:playerName});
+}
+
+function titleEnter() {
+	$("#welcome").css("visibility","hidden");
+	$("#instructions").css("visibility","visible");
+}
+
+function startForm() {
+	$("#instructions").css("visibility","hidden");
+	$("#address").css("visibility","visible");
+}
+
+
+function enterAddress() {
+    Ordrin.initialize('lo-KchoI4RGqLGpZu8bTaA', { 'restaurant':'https://r-test.ordr.in', 'user':'https://u-test.ordr.in', 'order':'https://o-test.ordr.in' }, 'JSONP');
+	var place = new Address('asdfasdf', 'asdfasdf', 'document.restAPIForm.city.value', '77840');
+	var time = new Date();
+    time.setASAP();
+	Ordrin.r.deliveryList(time, place, "listRestaurants");
+	
+}
+function restaurantChoice(r) {
+	Ordrin.r.details(r.id, "listFood");
+}
+
+function foodChoice(f) {
+    console.log(f);
+	$("#food").css("visibility","hidden");
+    $("#billing").css("visibility","visible");
+}
+
+function enterBilling() {
+	$("#billing").css("visibility","hidden");
+	$("#login").css("visibility","visible");
+	
+}
+
+function createRestaurant(name,id) {
+	return "<li id='"+id+"' onclick='restaurantChoice(this)'>"+name+"</li>";
+}
+function createFood(name,id) {
+	return "<li id='"+id+"' onclick='foodChoice(this)'>"+name+"</li>";
+}
+
+function flattenMenu(data) {
+	console.log(data);
+	var list =[];
+	for (var i in data.menu) {
+		for (var j in data.menu[i].children) {
+			list.push(data.menu[i].children[j]);
+		}
+	}
+	return list
+}
+
+function listFood(data) {
+	$("#restaurants").css("visibility","hidden");
+	$("#food").css("visibility","visible");
+	$("#foodForm").append("<ul>");
+	var list = flattenMenu(data);
+	console.log(list);
+	for (i in list) {
+		$("#foodForm").append(createFood(list[i].name,list[i].id));
+	}
+	$("#foodForm").append("</ul>");
+}
+
+function listRestaurants(data) {
+  $("#address").css("visibility","hidden");
+  $("#restaurants").css("visibility","visible");
+  $("#restaurantsForm").append("<ul>");
+  for (i in data) {
+	 $("#restaurantsForm").append(createRestaurant(data[i].na,data[i].id));
+  }
+  $("#restaurantsForm").append("</ul>");
+  console.log(data);
+ // $("#jsonOutput").json2html(data, transform);// document.getElementById('jsonOutput').innerHTML = JSON.stringify(data);
 }
 
 // autogenerate a random 5-letter ID for testing
@@ -232,6 +311,10 @@ function command(msg){
         $('#alert').css('visibility', 'visible');
         displayText = setTimeout( function() {
           $('#alert').css('visibility', 'hidden');
+          if (msg.alert == 'YOU LOSE' || msg.alert == 'YOU WIN FREE FOOD!!') {
+            $('#alert').css('visibility','visible');
+            $('#alert').html('<a href="#" onclick="socket.disconnect();window.location.reload();">play again</a>');
+          }
         }, 2000);
       }, delay);
       break;

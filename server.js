@@ -47,9 +47,9 @@ send404 = function(res){
   res.write('404');
   res.end();
 };
-
-server.listen(80); // http port
-
+var port = process.env.PORT || 3000;
+server.listen(port); // http port
+console.log("port:"+port);
 ///////////////////////////////
 //        SESSION CODE
 
@@ -75,11 +75,11 @@ io.on('connection', function(client){
     sessions.push(client.sessionId);
     log('\nCONNECTION NUMBER '+sessions.length+': '+client.sessionId);
   }
-  
+
   if (gameOn) {
     send(client.sessionId, {type:'gameon', player1:player1.name, player2:player2.name});
   }
-  
+
   updateLeaderboard(client.sessionId);
   updatePlayerCounts();
 
@@ -88,7 +88,7 @@ io.on('connection', function(client){
 
   // for player 1
   var elapsedTime = connectTime - p1posTime;
-  
+
   // paddles move 4% per 50ms
   var dist = p1goal - p1pos;
   var timeNeeded = Math.abs(dist/4*50); // total% / 4% * 50ms = total milliseconds to travel dist
@@ -108,12 +108,12 @@ io.on('connection', function(client){
   //log('timeNeeded: '+timeNeeded);
   //log('percentCompleted: '+percentCompleted);
   //log('currentPos: '+currentPos);
-  
+
   send(client.sessionId, {type:'movePaddle', which:'p1', pos:currentPos, goal:p1goal, init:true});
 
   // same for player 2
   var elapsedTime = connectTime - p2posTime;
-  
+
   // paddles move 4% per 50ms
   var dist = p2goal - p2pos;
   var timeNeeded = Math.abs(dist/4*50); // total% / 4% * 50ms = total milliseconds to travel dist
@@ -133,7 +133,7 @@ io.on('connection', function(client){
   //log('timeNeeded: '+timeNeeded);
   //log('percentCompleted: '+percentCompleted);
   //log('currentPos: '+currentPos);
-  
+
   send(client.sessionId, {type:'movePaddle', which:'p2', pos:currentPos, goal:p2goal, init:true});
 
 
@@ -151,7 +151,7 @@ io.on('connection', function(client){
       // send client's paddle position and goal to everybody except client
       io.broadcast({type: 'movePaddle', which:msg.which, pos:msg.pos, goal:msg.goal}, client.sessionId);
       //io.broadcast({type: 'movePaddle', which:msg.which, pos:msg.pos, goal:msg.goal});
-      
+
       if (client.sessionId == player2.id) {
         if (p1heartBeat == false) {
           p1skippedBeat++;
@@ -160,11 +160,11 @@ io.on('connection', function(client){
           p1skippedBeat = 0;
           p1heartBeat = false;
         }
-        
+
         p1pos = msg.pos;
         p1goal = msg.goal;
         p1posTime = new Date();
-        
+
       }
       if (client.sessionId == player1.id) {
         if (p2heartBeat == false) {
@@ -248,14 +248,14 @@ io.on('connection', function(client){
       startx = msg.startx;
       starty = msg.starty;
       endy = msg.endy;
-  
+
       //log(parseInt(client.sessionId/100000000000000)+": "+msg.which+" RETURN1");
       //log(' startx: '+rnd(startx)+', starty: '+rnd(starty)+', angle: '+rnd(msg.angle)+", p1returned: "+p1returned+", p2returned: "+p2returned);
-  
+
       timeFactor *= .9; // increase speed with every volley (.9)
       timefactor = Math.max(timeFactor, .25) // speed limit = 4x
       duration = xTime * timeFactor;
-      
+
       yTime = english(msg.angle);
 
       // adjust x duration to account for ytime: shorter ytime = longer xtime
@@ -265,7 +265,7 @@ io.on('connection', function(client){
         duration = duration * multiplier;
         log('> yTime: '+yTime+', mult: '+multiplier+', duration: '+duration);
       }
-      
+
       // speed up bounce to match volley speed
       yTime *= timeFactor;
 
@@ -276,7 +276,7 @@ io.on('connection', function(client){
       inity = (yTime < 0 ? starty : 100 - starty);
 
       inityTime = Math.abs(yTime * inity/100);
-      
+
       moveBall(duration, inityTime, yTime);
       //log('angle: '+rnd(msg.angle)+', xTime: '+rnd(xTime)+', yTime: '+rnd(yTime)+', inityTime: '+rnd(inityTime)+', duration: '+rnd(duration)+', timefactor: '+rnd(timeFactor));
       log('angle: '+rnd(msg.angle)+', yTime: '+rnd(yTime)+', duration: '+rnd(duration)+', timefactor: '+rnd(timeFactor));
@@ -341,9 +341,9 @@ io.on('connection', function(client){
             break;
           }
         }
-      
+
       }
-      
+
       log('> ready: '+msg.name+' '+client.sessionId)
 
       if (queue.length == 1) { // lonely player1...
@@ -416,7 +416,7 @@ io.on('connection', function(client){
     log('\nDISCONNECT: '+client.sessionId);
 
     tapOut(client.sessionId);
-    
+
     var idx = sessions.indexOf(client.sessionId);
     if (idx != -1) sessions.splice(idx, 1);
   });
@@ -481,7 +481,7 @@ var p1scored = 0, p2scored = 0;
 var p1returned = 0, p2returned = 0;
 
 var delay = 50; // ms between updates (50)
-var maxScore = 2;
+var maxScore = 5;
 var flatline = 50; // maximum allowable number of skipped heartBeats (25)
 var resetDelay = 2000 // delay between volleys (2000)
 var newgameDelay = 2000 // delay between games (2000)
@@ -540,7 +540,7 @@ function updateQueuePositions() {
 function updateLeaderboard(id) {
   // combine queue with leaderboard
   leaders = queue.slice(0); // make a copy of the queue
-  
+
   // if board not empty, add old leaderboard to queue
   if (leaderboard.length != 0) leaders = leaders.concat(leaderboard);
 
@@ -561,7 +561,7 @@ function updateLeaderboard(id) {
   var scores = '';
 
   for (var x=0; x<leaders.length; x++) { // assemble leaderboard table
-  
+
     // pick a class depending on whether they're still connected
     class = (contains(sessions, leaders[x].id)) ? '\'name\'' : '\'disconame\'';
     // build line
@@ -653,7 +653,7 @@ function eliminateDuplicates(array) {
 
 
 //////////////////////////////////
-//           NEW GAME      
+//           NEW GAME
 
 // newgame!
 function newgame(id) {
@@ -706,7 +706,7 @@ function newgame(id) {
   send(player1.id, {type:'css', which:'status', property:'background-color', value:'fuchsia'});
   send(player1.id, {type:'css', which:'status', property:'color', value:'aqua'});
   //send(player1.id, {type:'css', which:'p1', property:'background-color', value:'aqua'});
-  
+
   var statusmsg = player2.name + ' - PLAYING';
   send(player2.id, {type:'html', which:'status', html:statusmsg});
   send(player2.id, {type:'css', which:'status', property:'background-color', value:'fuchsia'});
@@ -805,7 +805,7 @@ function gameover(type, which) {
     loser = (which == player1) ? player2 : player1;
     log(winner.name+": "+score1+" "+loser.name+": "+score2);
     log(winner.name + ' WINS');
-    send(winner.id, {type:'display', alert:'YOU WIN'});
+    send(winner.id, {type:'display', alert:'YOU WIN FREE FOOD!!'});
     send(loser.id, {type:'display', alert:'YOU LOSE'});
 
     send(winner.id, {type:'css', which:'p1'});
@@ -823,7 +823,7 @@ function gameover(type, which) {
     //log('loser idx:'+idx);
     if (idx != -1) {
       queue.splice(idx,1);
-      queue.push(loser);
+      //queue.push(loser);
       var qmsg = '';
       for (x in queue) qmsg += ' '+queue[x].name;
       //log(queue.length+' in queue:'+qmsg);
@@ -844,7 +844,7 @@ function gameover(type, which) {
 
     // remove loser from queue and sessions
     tapOut(loser.id);
-    
+
     // tag losing player slot for reassignment
     if (loser == player1) player1 = 0; else player2 = 0;
 
@@ -874,7 +874,7 @@ function gameover(type, which) {
 // reset!
 function reset() {
   log('\nRESET: playing: '+playing+', gameOn: '+gameOn+', newgameID: '+(newgameID != false));
-  //if (playing || !gameOn || !newgameID) { 
+  //if (playing || !gameOn || !newgameID) {
   //if ( (playing && !gameOn) || (playing && !newgameID) ) {
   if (playing || !gameOn) {
     log('> false reset');
@@ -901,14 +901,14 @@ function reset() {
 
   xTime = 4000;
   timeFactor = 1;
-  
+
   deltay = 0;
   startx = 50, starty = 50;
 
   getset = false;
   playing = true;
   resetID = false;
-  
+
   log("serving, p1returned: "+p1returned+", p2returned: "+p2returned);
   // send reset to players
   send(player1.id, {type:'reset'});
