@@ -29,18 +29,18 @@ function validateName() {
   name = $('#entername').val().toUpperCase();
   valid = ( /[^A-Za-z\d ]/.test(name)==false);
   if (name.length < 1) valid = false
-  
+
   if (valid) socket.send({type:'validate', name:name});
   else {
     $('#entername').select();
     loginAlert("INVALID NAME, TRY AGAIN");
     return false;
   }
-  
+
   validateTimeout = setTimeout( function() {
     loginAlert("SERVER TIMEOUT, TRY AGAIN");
   }, 20000);
-  
+
 }
 
 function loginAlert(alertString) {
@@ -59,6 +59,83 @@ function play() {
 
   // send ready message to server
   socket.send({type:'ready', name:playerName});
+}
+
+function titleEnter() {
+	$("#welcome").css("visibility","hidden");
+	$("#instructions").css("visibility","visible");
+}
+
+function startForm() {
+	$("#instructions").css("visibility","hidden");
+	$("#address").css("visibility","visible");
+}
+
+
+function enterAddress() {
+    Ordrin.initialize('lo-KchoI4RGqLGpZu8bTaA', { 'restaurant':'https://r-test.ordr.in', 'user':'https://u-test.ordr.in', 'order':'https://o-test.ordr.in' }, 'JSONP');
+	var place = new Address('asdfasdf', 'asdfasdf', 'document.restAPIForm.city.value', '77840');
+	var time = new Date();
+    time.setASAP();
+	Ordrin.r.deliveryList(time, place, "listRestaurants");
+
+}
+function restaurantChoice(r) {
+	Ordrin.r.details(r.id, "listFood");
+}
+
+function foodChoice(f) {
+    console.log(f);
+	$("#food").css("visibility","hidden");
+    $("#billing").css("visibility","visible");
+}
+
+function enterBilling() {
+	$("#billing").css("visibility","hidden");
+	$("#login").css("visibility","visible");
+
+}
+
+function createRestaurant(name,id) {
+	return "<li id='"+id+"' onclick='restaurantChoice(this)'>"+name+"</li>";
+}
+function createFood(name,id) {
+	return "<li id='"+id+"' onclick='foodChoice(this)'>"+name+"</li>";
+}
+
+function flattenMenu(data) {
+	console.log(data);
+	var list =[];
+	for (var i in data.menu) {
+		for (var j in data.menu[i].children) {
+			list.push(data.menu[i].children[j]);
+		}
+	}
+	return list
+}
+
+function listFood(data) {
+	$("#restaurants").css("visibility","hidden");
+	$("#food").css("visibility","visible");
+	$("#foodForm").append("<ul>");
+	var list = flattenMenu(data);
+	console.log(list);
+	for (i in list) {
+		$("#foodForm").append(createFood(list[i].name,list[i].id));
+	}
+	$("#foodForm").append("</ul>");
+}
+
+function listRestaurants(data) {
+  $("#address").css("visibility","hidden");
+  $("#restaurants").css("visibility","visible");
+  $("#restaurantsForm").append("<ul>");
+  for (i in data) {
+	 $("#restaurantsForm").append(createRestaurant(data[i].na,data[i].id));
+  }
+  $("#restaurantsForm").append("</ul>");
+  console.log(data);
+ // $("#jsonOutput").json2html(data, transform);// document.getElementById('jsonOutput').innerHTML = JSON.stringify(data);
 }
 
 // autogenerate a random 5-letter ID for testing
@@ -167,7 +244,7 @@ function command(msg){
 
   // should go through the server code and make sure these are all needed
   switch(msg.type) {
-    
+
     // receives server's ID validation
     case 'validate':
       clearTimeout(validateTimeout);
@@ -179,7 +256,7 @@ function command(msg){
         loginAlert(msg.alert);
         if (msg.suggested) $('#entername').val(msg.suggested);
       }
-      
+
       break;
 
     // set player names and show players
@@ -199,7 +276,7 @@ function command(msg){
         ball.stop(true);
         xball.css('left',court.width()/2+"px")
         ball.css('top',court.height()/2+"px")
-        
+
         // turn on mouse tracking
         $(document).mousemove(function(e){ mouseY = e.pageY; });
 
@@ -232,6 +309,10 @@ function command(msg){
         $('#alert').css('visibility', 'visible');
         displayText = setTimeout( function() {
           $('#alert').css('visibility', 'hidden');
+          if (msg.alert == 'YOU LOSE' || msg.alert == 'YOU WIN FREE FOOD!!') {
+            $('#alert').css('visibility','visible');
+            $('#alert').html('<a href="#" onclick="socket.disconnect();window.location.reload();">play again</a>');
+          }
         }, 2000);
       }, delay);
       break;
@@ -247,12 +328,12 @@ function command(msg){
     case 'score': // update score
       score(msg.which, msg.val);
       break;
-    
+
     case 'reset': // prepare for new volley
       returned = 0;
       scored = 0;
       break;
-    
+
     case 'moveBall': // move ball
       socket.send({type:"log", what:"MOVEBALL"});
       // kill any existing or queued animates()
@@ -277,16 +358,16 @@ function command(msg){
       //deltay = msg.deltay * court.height() / 100; // convert to %
       lastbx = msg.startx; // reset client's last ball position to startx
       returned = false;
-      
+
       //readout2.html("");
-      
+
       /////////////////////////
       // animate xball on the X
       //testing
       //xball.animate({left: msg.endx+"%"}, {duration: msg.xTime, easing: 'linear',
       endxpx = msg.endx/100*court.width();
       xball.animate({left: endxpx+"px"}, {duration: msg.xTime, easing: 'linear',
-      
+
       step: function() {
         //readout2.html("left: "+rnd(xball.position().left)+", top: "+rnd(xball.position().top));
 
@@ -298,14 +379,14 @@ function command(msg){
 
       }, complete: function () {
         // if ball gets to its goal
-        
+
         //if (testMode) readout2.html("complete: returned: "+returned+", scored: "+scored);
-        
+
         if (msg.endx == 0) {
           if (!returned && !scored) {
           // P2 SCORED
             scored = true;
-            
+
             socket.send({type:'score', me:playing, which:'p2'});
             //if (testMode) readout2.html("complete at 0: returned: "+returned+", scored: "+scored);
           }
@@ -314,17 +395,17 @@ function command(msg){
           if (!returned && !scored) {
           // P1 SCORED
             scored = true;
-            
+
             socket.send({type:'score', me:playing, which:'p1'});
             //if (testMode) readout2.html("complete at 97: returned: "+returned+", scored: "+scored);
           }
         }
 
       }});
-      
+
       /////////////////////////
       // animate ball on the Y
-    
+
       if (msg.yTime != 0) { // only if there's a ytime, otherwise it goes straight across
         endy = (msg.yTime < 0 ? 0 : 96);
         //if (testMode) readout.html('endy: '+endy+', inityTime: '+rnd(msg.inityTime)+', yTime: '+msg.yTime);
@@ -340,7 +421,7 @@ function command(msg){
         });
       }
 
-      if ( (deltax > 0 && playing == "p2") || 
+      if ( (deltax > 0 && playing == "p2") ||
            (deltax < 0 && playing == "p1") ) {
         returned = false; // prepare to return
       }
@@ -349,17 +430,17 @@ function command(msg){
 
     case 'movePaddle': // move paddle
       //if (testMode) readout.html('which: '+msg.which+', pos: '+rnd(msg.pos)+', goal: '+rnd(msg.goal));
-    
+
       which = $("#"+msg.which);
       // cancel any existing jQuery animations
       which.stop(true);
-      
+
       if (msg.init) {
         which.css('top', msg.pos+'%');
       }
-      
+
       pos = which.position().top/court.height()*100;
-      
+
       // speed limit: 4% per step @ 20 fps
       //duration = Math.abs(msg.goal - msg.pos)*12; // 12 comes from trial and error
       duration = Math.abs(msg.goal - pos)*10; // 10 comes from trial and error
@@ -369,7 +450,7 @@ function command(msg){
       //if (testMode) which.animate({top: msg.goal+'%'}, {"duration": duration, "easing": "linear", step: function () { which.html(":"+rnd(msg.goal)+","+rnd(pos)); }
       which.animate({top: msg.goal+'%'}, {"duration": duration, "easing": "linear"});
       break;
-      
+
     case 'endgame':
       socket.send({type:"log", what:"ENDGAME"});
       if (testMode) readout2.html("FORFEIT");
@@ -381,8 +462,8 @@ function command(msg){
       ball.css('visibility', 'hidden');
       xball.css('left',court.width()/2+"px")
       ball.css('top',court.height()/2+"px")
-        
-      
+
+
       // turn off mouse tracking
       $(document).mousemove(null);
 
@@ -407,9 +488,9 @@ function bounceY(time) {
   thisTime = Math.abs(time); // positive animate() durations only
   nextTime = time * -1; // when done, head the other way
 
-  top = (time < 0 ? 0 : 96); // negative time = heading up, positive = down 
+  top = (time < 0 ? 0 : 96); // negative time = heading up, positive = down
 
-  //if (testMode) $("#returned").html('bounce, top: '+top+', time: '+time+', next: '+nextTime+', this: '+thisTime);  
+  //if (testMode) $("#returned").html('bounce, top: '+top+', time: '+time+', next: '+nextTime+', this: '+thisTime);
   //if (testMode) readout2.html('top!: '+top+', thistime: '+thisTime);
 
   //testing
@@ -419,9 +500,9 @@ function bounceY(time) {
     {top: topx+"px"},
     {duration: thisTime, easing: "linear", complete: function() {bounceY(nextTime);}}
   );
-  
+
 }
-        
+
 // main event loop
 function playLoop(arg) {
   clearTimeout(playTimer)
@@ -495,11 +576,11 @@ function collisionDetection() {
       deltax = -1;
     }
   }
-  
+
   // a magnificent return!
   if (returned) {
     xball.stop();
-    
+
     // get relative y position so server can calculate english
     // get position of ball as a proportion of paddle's height
     var which = (returned == 'p1' ? p1 : p2);
@@ -549,9 +630,9 @@ function outAdd(string) {
 jQuery.fx.interval = 50;
 
 function setBodyScale() {
- 
+
   var scaleSource = court.width(),
-    scaleFactor = 0.35,                     
+    scaleFactor = 0.35,
     maxScale = 200,
     minScale = 100; //Tweak these values to taste
 
@@ -586,7 +667,6 @@ $(document).ready(function() {
 
   //Fire it when the page first loads:
   setBodyScale();
-  
+
 });
 
-// END client.js

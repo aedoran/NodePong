@@ -10,17 +10,28 @@ form, table, tr, th, td
   line-height: 1;
 }
 
-html, body {
+html, body, input {
   height: 100%;
   width: 100%;
   background-color: #aaa;
   outline: 0px dotted green;
   text-align: left;
   font-size: 100%;
-  font-family: "silkscreen-1", Verdana, sans-serif;
+  font-family: "silkscreen", Verdana, sans-serif;
   letter-spacing: -.05em;
   color: white;
   vertical-align: middle;
+}
+
+li {
+  color: black;
+}
+li:hover {
+  color:yellow;
+}
+
+.formButton:hover {
+  color:yellow;
 }
 
 a {
@@ -264,7 +275,7 @@ noscript {
   font-weight: bold;
 }
 
-#login {
+#login, #restaurants, #billing, #food, #address, #welcome, #instructions {
   position:absolute;
   left:4%;
   top:22%;
@@ -274,6 +285,14 @@ noscript {
   text-align:center;
   background-color: #ccc;
   z-index:1000;
+}
+
+p {
+	color:black;
+}
+
+.title {
+	color:red;
 }
 
 #loginMessage {
@@ -453,17 +472,17 @@ a {
     margin: 0;
     display:none;
   }
-  
+
   #entername {
     margin-top: .2em;
     width: 50%;
     font-size: 1.5em;
   }
-  
+
   #go {
     font-size: 1em;
   }
-  
+
   #cancel {
     margin-top: .5em;
     font-size: .7em;
